@@ -20,10 +20,13 @@ package com.darranl.ssl;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.function.Supplier;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 /**
  *
@@ -54,6 +57,32 @@ public class TrustManagerSupplier implements Supplier<TrustManager[]> {
 
     static Supplier<TrustManager[]> nullSupplier() {
         return () -> null;
+    }
+
+    static Supplier<TrustManager[]> trustingSupplier() {
+        return new Supplier<TrustManager[]>() {
+
+            @Override
+            public TrustManager[] get() {
+                TrustManager[] trustManagers = new TrustManager[1];
+                trustManagers[0] = new X509TrustManager() {
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                    }
+                };
+                return trustManagers;
+            }
+        };
     }
 
     static Builder builder() {

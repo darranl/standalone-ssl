@@ -18,13 +18,14 @@
 package com.darranl.ssl;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.function.Supplier;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+
+import org.wildfly.security.ssl.CipherSuiteSelector;
 
 /**
  * Main entry point to open up a server socket for SSL connections.
@@ -35,9 +36,13 @@ public class SSLServer {
 
     private static final int DEFAULT_PORT = 2222;
 
+    private final int port;
+    private final String ciphers;
     private final Supplier<SSLContext> sslContextSupplier;
 
-    private SSLServer(Supplier<SSLContext> sslContextSupplier) {
+    private SSLServer(int port, String ciphers, Supplier<SSLContext> sslContextSupplier) {
+        this.port = port;
+        this.ciphers = ciphers;
         this.sslContextSupplier = sslContextSupplier;
     }
 
@@ -46,9 +51,22 @@ public class SSLServer {
 
         SSLServerSocketFactory serverSocketFactory = sslContext.getServerSocketFactory();
 
-        SSLServerSocket serverSocket = (SSLServerSocket) serverSocketFactory.createServerSocket(DEFAULT_PORT);
+        SSLServerSocket serverSocket = (SSLServerSocket) serverSocketFactory.createServerSocket(port);
 
-        // TODO - Filter Cipher Suites
+        if (ciphers != null && ciphers.length() > 0) {
+            CipherSuiteSelector cipherSuiteSelector = CipherSuiteSelector.fromString(ciphers);
+            String[] enabledCiphers = cipherSuiteSelector.evaluate(serverSocket.getSupportedCipherSuites());
+            StringBuilder sb = new StringBuilder("{");
+            for (int i = 0; i < enabledCiphers.length; i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                sb.append(enabledCiphers[i]);
+            }
+            sb.append("}");
+            System.out.println(String.format("Enabled Ciphers '%s'", sb.toString()));
+            serverSocket.setEnabledCipherSuites(enabledCiphers);
+        }
 
         while (true) {
             System.out.println("Waiting for a client");
@@ -65,8 +83,11 @@ public class SSLServer {
      */
     public static void main(String[] args) throws Exception {
         int port = DEFAULT_PORT;
+        String ciphers = null;
         String keystore = "rsa.keystore";
         for (String current : args) {
+            if (current.startsWith("ciphers="))
+                ciphers = current.substring(8);
             if (current.startsWith("keystore=")) {
                 keystore = current.substring(9);
             } else if (current.startsWith("port=")) {
@@ -74,7 +95,7 @@ public class SSLServer {
             }
         }
 
-        SSLServer server = new SSLServer(SSLContextSupplier.builder()
+        SSLServer server = new SSLServer(port, ciphers, SSLContextSupplier.builder()
                 .setProtocol("TLSv1.2")
                 .setKeyManagerSupplier(KeyManagerSupplier.builder()
                         .setAlgorithm("SunX509")

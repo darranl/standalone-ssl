@@ -17,6 +17,12 @@
  */
 package com.darranl.ssl;
 
+import java.net.InetSocketAddress;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 /**
  *
  *
@@ -24,11 +30,31 @@ package com.darranl.ssl;
  */
 public class SSLClient {
 
+    private static final int DEFAULT_PORT = 2222;
+
     /**
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        int port = DEFAULT_PORT;
+
         System.out.println("Client Started");
+
+        SSLContext sslContext = SSLContextSupplier.builder()
+                .setProtocol("TLSv1.2")
+                .setTrustManagerSupplier(TrustManagerSupplier.trustingSupplier())
+                .build()
+                .get();
+
+        SSLSocketFactory socketFactory = sslContext.getSocketFactory();
+
+        SSLSocket socket = (SSLSocket) socketFactory.createSocket();
+        // TODO Set enabled cipher suites here.
+        socket.connect(new InetSocketAddress("localhost", port), 5000);
+
+        System.out.println(String.format("Have a connection to '%s' valid SSL Session '%b' selected cipher '%s'", socket.getInetAddress().getHostAddress(), socket.getSession().isValid(), socket.getSession().getCipherSuite()));
+
+        socket.close();
     }
 
 }

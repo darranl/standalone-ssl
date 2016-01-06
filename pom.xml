@@ -12,13 +12,16 @@
   <properties>
     <version.compiler.plugin>3.1</version.compiler.plugin>
     <version.exec.plugin>1.4.0</version.exec.plugin>
+    <version.org.jboss.modules>1.4.3.Final</version.org.jboss.modules>
     <version.org.wildfly.security.wildfly-elytron>1.1.0.Beta4-SNAPSHOT</version.org.wildfly.security.wildfly-elytron>
-    
+
     <maven.compiler.argument.source>1.8</maven.compiler.argument.source>
     <maven.compiler.argument.target>1.8</maven.compiler.argument.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    
+
+    <exec.ciphers></exec.ciphers>
     <exec.keystore>rsa.keystore</exec.keystore>
+    <exec.port>2222</exec.port>
   </properties>
   
   <build>
@@ -58,14 +61,15 @@
             </executions>
 
             <configuration>
-                <executable>java</executable>
-          
+              <executable>java</executable>
               <arguments>
                 <argument>-classpath</argument>
                 <classpath/>
                 <argument>-Djavax.net.debug=all</argument>
                 <argument>com.darranl.ssl.SSLServer</argument>
+                <argument>ciphers=${exec.ciphers}</argument>
                 <argument>keystore=${exec.keystore}</argument>
+                <argument>port=${exec.port}</argument>
               </arguments>
             </configuration>
           </plugin>
@@ -107,6 +111,11 @@
   </profiles>
 
   <dependencies>
+    <dependency>
+      <groupId>org.jboss.modules</groupId>
+      <artifactId>jboss-modules</artifactId>
+      <version>${version.org.jboss.modules}</version>
+    </dependency>
     <dependency>
         <groupId>org.wildfly.security</groupId>
         <artifactId>wildfly-elytron</artifactId>
