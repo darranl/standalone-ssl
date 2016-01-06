@@ -65,8 +65,13 @@ public class SSLServer {
      */
     public static void main(String[] args) throws Exception {
         int port = DEFAULT_PORT;
+        String keystore = "rsa.keystore";
         for (String current : args) {
-            port = Integer.parseInt(current);
+            if (current.startsWith("keystore=")) {
+                keystore = current.substring(9);
+            } else if (current.startsWith("port=")) {
+                port = Integer.parseInt(current.substring(5));
+            }
         }
 
         SSLServer server = new SSLServer(SSLContextSupplier.builder()
@@ -76,7 +81,7 @@ public class SSLServer {
                         .setPassword("keystore_password".toCharArray())
                         .setKeyStoreSupplier(KeyStoreSupplier.builder()
                                 .setType("JKS")
-                                .setPath("rsa.keystore")
+                                .setPath(keystore)
                                 .setPassword("keystore_password".toCharArray())
                                 .build())
                         .build())

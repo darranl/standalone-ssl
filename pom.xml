@@ -17,6 +17,8 @@
     <maven.compiler.argument.source>1.8</maven.compiler.argument.source>
     <maven.compiler.argument.target>1.8</maven.compiler.argument.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+    <exec.keystore>rsa.keystore</exec.keystore>
   </properties>
   
   <build>
@@ -63,6 +65,7 @@
                 <classpath/>
                 <argument>-Djavax.net.debug=all</argument>
                 <argument>com.darranl.ssl.SSLServer</argument>
+                <argument>keystore=${exec.keystore}</argument>
               </arguments>
             </configuration>
           </plugin>
