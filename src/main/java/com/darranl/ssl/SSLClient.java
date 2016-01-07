@@ -23,6 +23,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.wildfly.security.ssl.CipherSuiteSelector;
+
 /**
  *
  *
@@ -37,6 +39,15 @@ public class SSLClient {
      */
     public static void main(String[] args) throws Exception {
         int port = DEFAULT_PORT;
+        String ciphers = null;
+        for (String current : args) {
+            if (current.startsWith("ciphers=")) {
+                ciphers = current.substring(8);
+            } else if (current.startsWith("port=")) {
+                port = Integer.parseInt(current.substring(5));
+            }
+        }
+
 
         System.out.println("Client Started");
 
@@ -49,7 +60,21 @@ public class SSLClient {
         SSLSocketFactory socketFactory = sslContext.getSocketFactory();
 
         SSLSocket socket = (SSLSocket) socketFactory.createSocket();
-        // TODO Set enabled cipher suites here.
+        if (ciphers != null && ciphers.length() > 0) {
+            CipherSuiteSelector cipherSuiteSelector = CipherSuiteSelector.fromString(ciphers);
+            String[] enabledCiphers = cipherSuiteSelector.evaluate(socketFactory.getSupportedCipherSuites());
+            StringBuilder sb = new StringBuilder("{");
+            for (int i = 0; i < enabledCiphers.length; i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                sb.append(enabledCiphers[i]);
+            }
+            sb.append("}");
+            System.out.println(String.format("Enabled Ciphers '%s'", sb.toString()));
+            socket.setEnabledCipherSuites(enabledCiphers);
+        }
+
         socket.connect(new InetSocketAddress("localhost", port), 5000);
 
         System.out.println(String.format("Have a connection to '%s' valid SSL Session '%b' selected cipher '%s'", socket.getInetAddress().getHostAddress(), socket.getSession().isValid(), socket.getSession().getCipherSuite()));
