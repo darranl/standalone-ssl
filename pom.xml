@@ -20,6 +20,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <exec.ciphers></exec.ciphers>
+    <exec.fixed-alias></exec.fixed-alias>
     <exec.keystore>rsa.keystore</exec.keystore>
     <exec.password>keystore_password</exec.password>
     <exec.port>2222</exec.port>
@@ -66,9 +67,11 @@
               <arguments>
                 <argument>-classpath</argument>
                 <classpath/>
+                <argument>-agentlib:jdwp=transport=dt_socket,address=8787,server=y,suspend=n</argument>
                 <argument>-Djavax.net.debug=all</argument>
                 <argument>com.darranl.ssl.SSLServer</argument>
                 <argument>ciphers=${exec.ciphers}</argument>
+                <argument>fixed-alias=${exec.fixed-alias}</argument>
                 <argument>keystore=${exec.keystore}</argument>
                 <argument>password=${exec.password}</argument>
                 <argument>port=${exec.port}</argument>

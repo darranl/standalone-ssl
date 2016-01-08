@@ -85,11 +85,20 @@ public class SSLServer {
         int port = DEFAULT_PORT;
         String ciphers = null;
         String keystore = "rsa.keystore";
+        String password = "keystore_password";
+        String fixedAlias = null;
         for (String current : args) {
-            if (current.startsWith("ciphers="))
+            if (current.startsWith("ciphers=")) {
                 ciphers = current.substring(8);
-            if (current.startsWith("keystore=")) {
+            } else if (current.startsWith("fixed-alias=")) {
+                String temp = current.substring(12);
+                if (temp.length() > 0) {
+                    fixedAlias = temp;
+                }
+            } else if (current.startsWith("keystore=")) {
                 keystore = current.substring(9);
+            } else if (current.startsWith("password=")) {
+                password = current.substring(9);
             } else if (current.startsWith("port=")) {
                 port = Integer.parseInt(current.substring(5));
             }
@@ -99,11 +108,12 @@ public class SSLServer {
                 .setProtocol("TLSv1.2")
                 .setKeyManagerSupplier(KeyManagerSupplier.builder()
                         .setAlgorithm("SunX509")
-                        .setPassword("keystore_password".toCharArray())
+                        .setPassword(password.toCharArray())
+                        .setFixedAlias(fixedAlias)
                         .setKeyStoreSupplier(KeyStoreSupplier.builder()
                                 .setType("JKS")
                                 .setPath(keystore)
-                                .setPassword("keystore_password".toCharArray())
+                                .setPassword(password.toCharArray())
                                 .build())
                         .build())
                 .build());
